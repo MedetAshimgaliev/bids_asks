@@ -3,12 +3,10 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"log"
+	"github.com/gosuri/uilive"
 	"net/http"
 	"strconv"
 	"time"
-	//"os"
-	//"time"
 )
 
 type DataModel struct {
@@ -30,6 +28,30 @@ func getData() DataModel {
 	var data DataModel
 	err = decoder.Decode(&data)
 	return data
+}
+
+func printBids() {
+	writer := uilive.New()
+	writer2 := writer.Newline()
+	writer.Start()
+
+	var uID int64
+	for true {
+		var data = getData()
+		uID = data.LastUpdateId
+
+		fmt.Fprintf(writer, "Last Update ID:  %d \n", uID)
+
+		for i := 0; i < 15; i++ {
+			first, _ := strconv.ParseFloat(data.Bids[i][0], 64)
+			second, _ := strconv.ParseFloat(data.Bids[i][1], 64)
+			prod := first * second
+			fmt.Fprintf(writer2, "#%d: Price: %s | Qty: %s | Sum: %v \n", i, data.Bids[i][0], data.Bids[i][1], prod)
+		}
+		time.Sleep(time.Millisecond * 1000)
+	}
+	fmt.Fprintln(writer, "Finished")
+	writer.Stop()
 }
 
 const socketAddress string = "wss://testnet.binancefuture.com"
@@ -78,56 +100,6 @@ const socketAddress string = "wss://testnet.binancefuture.com"
 //}
 
 func main() {
-	//var data = getData()
-	//
-	//log.Println("Last Update ID: " + strconv.FormatInt(data.LastUpdateId, 10))
-	//log.Println("BIDS:")
-	//log.Println("Price          Qty        Sum")
-	//log.Println("-----------------------------")
-	//
-	//for i := 0; i < 15; i++ {
-	//	first, _ := strconv.ParseFloat(data.Bids[i][0], 64)
-	//	second, _ := strconv.ParseFloat(data.Bids[i][1], 64)
-	//	prod := first * second
-	//
-	//	log.Printf("%v  %s %v", data.Bids[i][0], data.Bids[i][1], prod)
-	//}
-
-	var t time.Duration
-	t = 20 * time.Millisecond
-
-	for x := range time.Tick(t) {
-		var data = getData()
-		log.Println(x)
-		log.Println("Last Update ID: " + strconv.FormatInt(data.LastUpdateId, 10))
-		log.Println("BIDS:")
-		log.Println("Price          Qty        Sum")
-		log.Println("-----------------------------")
-
-		for i := 0; i < 15; i++ {
-			first, _ := strconv.ParseFloat(data.Bids[i][0], 64)
-			second, _ := strconv.ParseFloat(data.Bids[i][1], 64)
-			prod := first * second
-
-			log.Printf("%v  %s %v", data.Bids[i][0], data.Bids[i][1], prod)
-		}
-	}
-
-	//writer := uilive.New()       // writer for the first line
-	//writer2 := writer.Newline()  // writer for the second line
-	//// start listening for updates and render
-	//writer.Start()
-	//
-	//
-	//i := 0
-	//for true {
-	//	fmt.Fprintf(writer, "Downloading File 1.. %d %%\n", i)
-	//	fmt.Fprintf(writer2, "Downloading File 2.. %d %%\n", i)
-	//	time.Sleep(time.Millisecond * 50)
-	//	i++
-	//}
-
-	//fmt.Fprintln(writer, "Finished downloading both files :)")
-	//writer.Stop() // flush and stop rendering
-
+	fmt.Println("*****BIDS & ASKS*****")
+	printBids()
 }
